@@ -65,11 +65,11 @@ impl RustConfiguration {
             let workspace_deps: BTreeMap<String, Dependency> = workspace
                 .dependencies
                 .into_iter()
-                .chain(manifest.build_dependencies.into_iter())
-                .chain(manifest.dev_dependencies.into_iter())
+                .chain(manifest.build_dependencies)
+                .chain(manifest.dev_dependencies)
                 .collect();
             for member in &workspace.members {
-                let current_path = self.path.parent().unwrap().join(&member).join("Cargo.toml");
+                let current_path = self.path.parent().unwrap().join(member).join("Cargo.toml");
                 let member_targets: Vec<_> =
                     Self::parse(&RustConfiguration { path: current_path })?
                         .iter_mut()
