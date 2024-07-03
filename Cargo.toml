@@ -1,0 +1,9 @@
+[package]
+name = "dep-analizer"
+version = "0.1.0"
+edition = "2021"
+description = "A utility for analyzing dependencies of various languages and displaying them in a graph"
+
+[dependencies]
+clap = { version = "4.5.8", features = ["derive"] }
+toml = "0.8.14"
