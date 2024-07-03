@@ -5,5 +5,8 @@ edition = "2021"
 description = "A utility for analyzing dependencies of various languages and displaying them in a graph"
 
 [dependencies]
+anyhow = "1.0.86"
+cargo_toml = "0.20.3"
 clap = { version = "4.5.8", features = ["derive"] }
+serde = "1.0.203"
 toml = "0.8.14"
