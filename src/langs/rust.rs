@@ -7,6 +7,7 @@ use crate::model::{Target, TargetKind};
 
 #[derive(Debug, Clone, Args)]
 pub struct RustConfiguration {
+    /// Path to top level Cargo.toml
     pub path: PathBuf,
 }
 
@@ -35,15 +36,20 @@ impl RustConfiguration {
                 .chain(manifest.dev_dependencies.iter())
                 .chain(manifest.build_dependencies.iter())
                 .map(|(key, value)| {
-                    Target::new(key.clone(), TargetKind::Library, {
-                        match value {
-                            cargo_toml::Dependency::Simple(s) => s.to_string(),
-                            cargo_toml::Dependency::Inherited(_) => "".to_string(),
-                            cargo_toml::Dependency::Detailed(d) => {
-                                d.version.clone().unwrap_or_default()
-                            }
-                        }
-                    })
+                    let (version, kind) = match value {
+                        cargo_toml::Dependency::Simple(s) => (s.to_string(), TargetKind::Crate),
+                        cargo_toml::Dependency::Inherited(_) => ("".to_string(), TargetKind::Crate),
+                        cargo_toml::Dependency::Detailed(d) => (
+                            d.version
+                                .clone()
+                                .unwrap_or(d.rev.clone().unwrap_or_default()),
+                            match d.path {
+                                Some(_) => TargetKind::Library,
+                                None => TargetKind::Crate,
+                            },
+                        ),
+                    };
+                    Target::new(key.clone(), kind, version)
                 })
                 .collect();
 
@@ -62,7 +68,7 @@ impl RustConfiguration {
                 .chain(manifest.build_dependencies.into_iter())
                 .chain(manifest.dev_dependencies.into_iter())
                 .collect();
-            for member in workspace.members {
+            for member in &workspace.members {
                 let current_path = self.path.parent().unwrap().join(&member).join("Cargo.toml");
                 let member_targets: Vec<_> =
                     Self::parse(&RustConfiguration { path: current_path })?
@@ -71,15 +77,19 @@ impl RustConfiguration {
                             t.version = version.to_string();
                             if let Some(deps) = t.dependencies.borrow_mut() {
                                 deps.iter_mut().for_each(|d| {
-                                    if d.version.eq("") && workspace_deps.contains_key(&d.name) {
-                                        let version = workspace_deps.get(&d.name).unwrap();
-                                        d.version = match version {
-                                            Dependency::Simple(s) => s.to_string(),
-                                            Dependency::Inherited(_) => "".to_string(),
-                                            Dependency::Detailed(s) => {
-                                                s.version.clone().unwrap_or_default()
-                                            }
-                                        };
+                                    if d.version.eq("") {
+                                        if workspace_deps.contains_key(&d.name) {
+                                            let dep = workspace_deps.get(&d.name).unwrap();
+                                            d.version = match dep {
+                                                Dependency::Simple(s) => s.to_string(),
+                                                Dependency::Inherited(_) => version.to_string(),
+                                                Dependency::Detailed(s) => {
+                                                    s.version.clone().unwrap_or(version.to_string())
+                                                }
+                                            };
+                                        } else if d.kind == TargetKind::Library {
+                                            d.version = version.to_string();
+                                        }
                                     }
                                 });
                             }

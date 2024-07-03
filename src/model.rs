@@ -31,15 +31,19 @@ impl Display for Target {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} {} {}\n",
+            "{}{} {}{}\n",
             self.kind.to_string(),
             self.name,
-            self.version
+            self.version,
+            match &self.dependencies {
+                Some(_) => ":",
+                None => "",
+            }
         )?;
 
         if let Some(dependencies) = &self.dependencies {
             for dependency in dependencies {
-                write!(f, "|- {}", dependency)?;
+                write!(f, " |- {}", dependency)?;
             }
         }
 
@@ -47,17 +51,19 @@ impl Display for Target {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TargetKind {
     Binary,
     Library,
+    Crate,
 }
 
 impl ToString for TargetKind {
     fn to_string(&self) -> String {
         match self {
-            TargetKind::Binary => "bin",
-            TargetKind::Library => "lib",
+            TargetKind::Binary => "bin ",
+            TargetKind::Library => "lib ",
+            TargetKind::Crate => "",
         }
         .to_string()
     }
