@@ -53,12 +53,9 @@ fn main() -> anyhow::Result<()> {
         g,
         &mut PrinterContext::default(),
         vec![(Into::<Format>::into(args.format)).into()],
-    )
-    .unwrap();
+    )?;
 
-    std::fs::write(args.output, &graph_svg).unwrap();
-
-    Ok(())
+    std::fs::write(args.output, &graph_svg).map_err(|e| anyhow::anyhow!(e))
 }
 
 fn update_height(targets: &mut Vec<Target>, height: usize, previous_layer: Vec<Target>) {
