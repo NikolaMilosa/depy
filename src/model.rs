@@ -8,8 +8,14 @@ pub struct Target {
     pub kind: TargetKind,
     pub version: String,
     pub dependencies: Option<Vec<Target>>,
+    pub height: usize,
 }
 
+impl PartialEq for Target {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.kind == other.kind && self.version == other.version
+    }
+}
 impl Target {
     pub fn new(name: String, kind: TargetKind, version: String) -> Self {
         Self {
@@ -17,6 +23,7 @@ impl Target {
             kind,
             version,
             dependencies: None,
+            height: 0,
         }
     }
 
@@ -31,7 +38,8 @@ impl Display for Target {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "{}{} {}{}",
+            "({}) {}{} {}{}",
+            self.height,
             self.kind,
             self.name,
             self.version,
