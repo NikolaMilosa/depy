@@ -11,9 +11,7 @@ mod model;
 fn main() -> anyhow::Result<()> {
     let args = args::Args::parse();
 
-    let mut targets = match args.language {
-        langs::LanguagesConfiguration::Rust(r) => r.parse()?,
-    };
+    let mut targets = args.language.parse()?;
 
     let layer_zero: Vec<_> = targets
         .clone()

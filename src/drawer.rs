@@ -48,13 +48,13 @@ impl Drawer {
         for t in targets {
             let c = pick_random_color();
             g.add_stmt(Stmt::Node(Node {
-                id: node_id!(t.name),
+                id: node_id!(esc t.name),
                 attributes: vec![attr!("color", c)],
             }));
             if let Some(deps) = t.dependencies {
                 for dep in deps {
                     g.add_stmt(
-                        edge!(node_id!(t.name) => node_id!(dep.name), vec![attr!("color", c)])
+                        edge!(node_id!(esc t.name) => node_id!(esc dep.name), vec![attr!("color", c)])
                             .into(),
                     );
                 }
