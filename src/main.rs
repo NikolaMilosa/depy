@@ -1,4 +1,5 @@
 use clap::Parser;
+use langs::ConfigParser;
 use model::TargetKind;
 
 mod args;
