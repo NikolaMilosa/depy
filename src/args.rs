@@ -16,6 +16,10 @@ pub struct Args {
     #[clap(long, value_enum, default_value_t = FormatInt::Svg)]
     pub format: FormatInt,
 
+    /// Indicate a debug print of targets
+    #[clap(long, default_value_t = false)]
+    pub debug: bool,
+
     #[clap(subcommand)]
     pub language: LanguagesConfiguration,
 }
