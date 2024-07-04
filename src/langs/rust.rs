@@ -32,7 +32,7 @@ impl ConfigParser for RustConfiguration {
 impl RustConfiguration {
     fn build_target_from_package(package: &Package, manifest: &Manifest) -> anyhow::Result<Target> {
         let mut target = Target::new(
-            package.name.clone(),
+            package.name.replace("-", "_"),
             match manifest.lib.is_none() {
                 true => TargetKind::Binary,
                 false => TargetKind::Library,
@@ -62,8 +62,9 @@ impl RustConfiguration {
                         },
                     ),
                 };
-                Target::new(key.clone(), kind, version)
+                Target::new(key.replace("-", "_"), kind, version)
             })
+            .filter(|t| t.kind != TargetKind::Crate)
             .collect();
 
         target.add_dependencies(deps);

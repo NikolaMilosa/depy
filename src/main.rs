@@ -1,14 +1,15 @@
 use clap::Parser;
 use graphviz_rust::{
+    attributes::*,
     cmd::Format,
-    dot_generator::*,
-    dot_generator::{graph, id},
+    dot_generator::{graph, id, *},
     dot_structures::*,
     exec,
     printer::PrinterContext,
 };
 use langs::ConfigParser;
-use model::{Target, TargetKind};
+use model::Target;
+use rand::Rng;
 
 mod args;
 mod langs;
@@ -18,29 +19,7 @@ fn main() -> anyhow::Result<()> {
     let args = args::Args::parse();
 
     let mut targets = match args.language {
-        langs::LanguagesConfiguration::Rust(r) => {
-            let mut targets = r.parse()?;
-
-            targets.iter_mut().for_each(|t| {
-                t.name = t.name.replace("-", "_");
-                if let Some(deps) = &t.dependencies {
-                    let deps: Vec<_> = deps
-                        .iter()
-                        .filter(|d| d.kind != TargetKind::Crate)
-                        .map(|d| Target {
-                            name: d.name.replace("-", "_"),
-                            ..d.clone()
-                        })
-                        .collect();
-                    t.dependencies = match deps.is_empty() {
-                        true => None,
-                        false => Some(deps),
-                    }
-                }
-            });
-
-            targets
-        }
+        langs::LanguagesConfiguration::Rust(r) => r.parse()?,
     };
 
     let layer_zero: Vec<_> = targets
@@ -53,16 +32,19 @@ fn main() -> anyhow::Result<()> {
 
     targets.sort_by_key(|t| t.height);
 
-    let mut g = graph!(id!("id"));
+    let mut g = graph!(strict di id!("id"));
 
     for t in targets {
+        let c = pick_random_color();
         g.add_stmt(Stmt::Node(Node {
             id: node_id!(t.name),
-            attributes: vec![],
+            attributes: vec![attr!("color", c)],
         }));
         if let Some(deps) = t.dependencies {
             for dep in deps {
-                g.add_stmt(edge!(node_id!(t.name) => node_id!(dep.name)).into());
+                g.add_stmt(
+                    edge!(node_id!(t.name) => node_id!(dep.name), vec![attr!("color", c)]).into(),
+                );
             }
         }
     }
@@ -92,4 +74,25 @@ fn update_height(targets: &mut Vec<Target>, height: usize, previous_layer: Vec<T
     }
 
     update_height(targets, height + 1, current_layer);
+}
+
+const ALL_COLORS: &[color_name] = &[
+    color_name::blue,
+    color_name::black,
+    color_name::blueviolet,
+    color_name::brown,
+    color_name::gold,
+    color_name::green,
+    color_name::magenta,
+    color_name::olive,
+    color_name::orange,
+    color_name::red,
+    color_name::purple,
+];
+
+fn pick_random_color() -> &'static color_name {
+    let mut rng = rand::thread_rng();
+    let index = rng.gen_range(0..ALL_COLORS.len());
+    let c = &ALL_COLORS[index];
+    c
 }

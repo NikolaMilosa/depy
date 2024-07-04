@@ -161,6 +161,7 @@ dependencies = [
  "cargo_toml",
  "clap",
  "graphviz-rust",
+ "rand",
  "serde",
  "toml",
 ]
