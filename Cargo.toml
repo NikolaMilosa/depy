@@ -8,5 +8,6 @@ description = "A utility for analyzing dependencies of various languages and dis
 anyhow = "1.0.86"
 cargo_toml = "0.20.3"
 clap = { version = "4.5.8", features = ["derive"] }
+graphviz-rust = "0.9.0"
 serde = "1.0.203"
 toml = "0.8.14"

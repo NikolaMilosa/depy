@@ -1,4 +1,12 @@
 use clap::Parser;
+use graphviz_rust::{
+    cmd::Format,
+    dot_generator::*,
+    dot_generator::{graph, id},
+    dot_structures::*,
+    exec,
+    printer::PrinterContext,
+};
 use langs::ConfigParser;
 use model::{Target, TargetKind};
 
@@ -14,11 +22,15 @@ fn main() -> anyhow::Result<()> {
             let mut targets = r.parse()?;
 
             targets.iter_mut().for_each(|t| {
+                t.name = t.name.replace("-", "_");
                 if let Some(deps) = &t.dependencies {
                     let deps: Vec<_> = deps
                         .iter()
                         .filter(|d| d.kind != TargetKind::Crate)
-                        .cloned()
+                        .map(|d| Target {
+                            name: d.name.replace("-", "_"),
+                            ..d.clone()
+                        })
                         .collect();
                     t.dependencies = match deps.is_empty() {
                         true => None,
@@ -41,9 +53,23 @@ fn main() -> anyhow::Result<()> {
 
     targets.sort_by_key(|t| t.height);
 
-    for target in targets {
-        println!("{}", target);
+    let mut g = graph!(id!("id"));
+
+    for t in targets {
+        g.add_stmt(Stmt::Node(Node {
+            id: node_id!(t.name),
+            attributes: vec![],
+        }));
+        if let Some(deps) = t.dependencies {
+            for dep in deps {
+                g.add_stmt(edge!(node_id!(t.name) => node_id!(dep.name)).into());
+            }
+        }
     }
+
+    let graph_svg = exec(g, &mut PrinterContext::default(), vec![Format::Svg.into()]).unwrap();
+
+    std::fs::write(args.output, &graph_svg).unwrap();
 
     Ok(())
 }
