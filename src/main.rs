@@ -49,7 +49,12 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    let graph_svg = exec(g, &mut PrinterContext::default(), vec![Format::Svg.into()]).unwrap();
+    let graph_svg = exec(
+        g,
+        &mut PrinterContext::default(),
+        vec![(Into::<Format>::into(args.format)).into()],
+    )
+    .unwrap();
 
     std::fs::write(args.output, &graph_svg).unwrap();
 
