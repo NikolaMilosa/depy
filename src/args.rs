@@ -26,14 +26,62 @@ pub struct Args {
     /// Path to the file to be read
     #[clap(long, short)]
     pub path: PathBuf,
+
+    /// The target name to start from
+    ///
+    /// If the workspace has a lot of dependencies then you can use this feature
+    /// to only set this target as a top-level one
+    #[clap(long, short, allow_hyphen_values = true)]
+    pub top_level: Option<String>,
 }
 
 impl Args {
     pub fn parse_input(&self) -> anyhow::Result<Vec<Target>> {
         let lang: LanguagesConfiguration = self.path.clone().try_into()?;
 
-        lang.parse(self.path.clone())
+        let mut targets = lang.parse(self.path.clone())?;
+        if let Some(top_level) = &self.top_level {
+            let target = targets
+                .iter()
+                .find(|t| t.name.eq(top_level))
+                .cloned()
+                .ok_or(anyhow::anyhow!(
+                    "Target with name '{}' not found",
+                    top_level
+                ))?;
+            let initial_bag = targets.into_iter().filter(|t| !t.eq(&target)).collect();
+
+            let mut acc = vec![];
+            iterate(&mut acc, vec![target], initial_bag);
+            targets = acc
+        }
+
+        Ok(targets)
     }
+}
+
+fn iterate(acc: &mut Vec<Target>, to_keep: Vec<Target>, bag: Vec<Target>) {
+    if to_keep.is_empty() {
+        return;
+    }
+
+    let mut new_to_keep = vec![];
+    let mut new_bag = bag.clone();
+
+    for new_addition in &to_keep {
+        if let Some(deps) = &new_addition.dependencies {
+            for dep in deps {
+                if let Some(pos) = new_bag.iter().position(|t| t.eq(dep)) {
+                    let popped = new_bag.remove(pos);
+                    new_to_keep.push(popped)
+                }
+            }
+        }
+    }
+
+    acc.extend(to_keep);
+
+    iterate(acc, new_to_keep, new_bag)
 }
 
 #[derive(ValueEnum, Debug, Clone)]
