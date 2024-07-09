@@ -1,4 +1,4 @@
-# Dependency analizer
+# Dependency analyzer
 
 A simple CLI tool for visualizing dependencies within projects currently in development.
 
@@ -13,6 +13,6 @@ cargo build --release
 
 ## Usage
 ```bash
-dep-analyzer --output ~/Downloads/out rust ../path/to/Cargo.toml
+depy --output ~/Downloads/out rust ../path/to/Cargo.toml
 ```
 To visualize the output one can use a browser.

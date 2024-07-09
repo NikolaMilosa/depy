@@ -1,5 +1,5 @@
 [package]
-name = "dep-analizer"
+name = "depy"
 version = "0.1.0"
 edition = "2021"
 description = "A utility for analyzing dependencies of various languages and displaying them in a graph"

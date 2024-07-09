@@ -318,7 +318,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "dep-analizer"
+name = "depy"
 version = "0.1.0"
 dependencies = [
  "anyhow",
