@@ -1,31 +1,31 @@
-use std::{path::PathBuf};
+use std::path::PathBuf;
 
 use cargo_toml::{Manifest, Package};
-use clap::Args;
 
 use crate::model::{Target, TargetKind};
 
 use super::ConfigParser;
 
-#[derive(Debug, Clone, Args)]
-pub struct RustConfiguration {
-    /// Path to top level Cargo.toml
-    pub path: PathBuf,
-}
+#[derive(Debug, Clone, Default)]
+pub struct RustConfiguration {}
 
 impl ConfigParser for RustConfiguration {
-    fn parse(&self) -> anyhow::Result<Vec<Target>> {
-        let file = std::fs::read(&self.path)?;
+    fn parse(&self, path: PathBuf) -> anyhow::Result<Vec<Target>> {
+        let file = std::fs::read(&path)?;
         let mut manifest = Manifest::from_slice(&file)?;
-        manifest.complete_from_path(&self.path)?;
+        manifest.complete_from_path(&path)?;
         let mut targets = vec![];
         if let Some(ref package) = manifest.package {
             let target = Self::build_target_from_package(package, &manifest)?;
             targets.push(target);
         } else {
-            targets.extend(self.build_targets_from_workspace(manifest)?);
+            targets.extend(self.build_targets_from_workspace(manifest, path)?);
         }
         Ok(targets)
+    }
+
+    fn file_end(&self) -> String {
+        "Cargo.toml".to_string()
     }
 }
 
@@ -73,7 +73,11 @@ impl RustConfiguration {
         Ok(target)
     }
 
-    fn build_targets_from_workspace(&self, manifest: Manifest) -> anyhow::Result<Vec<Target>> {
+    fn build_targets_from_workspace(
+        &self,
+        manifest: Manifest,
+        path: PathBuf,
+    ) -> anyhow::Result<Vec<Target>> {
         let mut targets = vec![];
         let workspace = manifest
             .workspace
@@ -82,15 +86,16 @@ impl RustConfiguration {
         let version = package.version.unwrap_or_default();
 
         for member in &workspace.members {
-            let current_path = self.path.parent().unwrap().join(member).join("Cargo.toml");
-            let member_targets: Vec<_> = Self::parse(&RustConfiguration { path: current_path })?
-                .iter_mut()
-                .map(|t| {
-                    t.version = version.to_string();
+            let current_path = &path.parent().unwrap().join(member).join("Cargo.toml");
+            let member_targets: Vec<_> =
+                Self::parse(&RustConfiguration {}, current_path.to_owned())?
+                    .iter_mut()
+                    .map(|t| {
+                        t.version = version.to_string();
 
-                    t.clone()
-                })
-                .collect();
+                        t.clone()
+                    })
+                    .collect();
             targets.extend(member_targets);
         }
 

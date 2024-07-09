@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{io::Write, path::PathBuf};
 
 use graphviz_rust::{
     attributes::*,
@@ -60,8 +60,15 @@ impl Drawer {
         }
 
         let graph_svg = exec(g, &mut PrinterContext::default(), vec![self.format.into()])?;
-
-        std::fs::write(self.path.clone().unwrap(), &graph_svg).map_err(|e| anyhow::anyhow!(e))
+        match &self.path {
+            Some(p) => std::fs::write(p, &graph_svg).map_err(|e| anyhow::anyhow!(e)),
+            None => {
+                let _ = std::io::stdout()
+                    .write(&graph_svg)
+                    .map_err(|e| anyhow::anyhow!(e))?;
+                Ok(())
+            }
+        }
     }
 }
 

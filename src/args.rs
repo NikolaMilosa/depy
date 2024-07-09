@@ -1,16 +1,16 @@
 use std::path::PathBuf;
 
-use clap::{Parser, ValueEnum};
+use clap::{error::ErrorKind, Command, Parser, ValueEnum};
 use graphviz_rust::cmd::Format;
 
-use crate::langs::LanguagesConfiguration;
+use crate::model::Target;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 pub struct Args {
     /// Output path for dot file
     #[clap(long)]
-    pub output: PathBuf,
+    pub output: Option<PathBuf>,
 
     /// Output format
     #[clap(long, value_enum, default_value_t = FormatInt::Svg)]
@@ -20,8 +20,15 @@ pub struct Args {
     #[clap(long, default_value_t = false)]
     pub debug: bool,
 
-    #[clap(subcommand)]
-    pub language: LanguagesConfiguration,
+    /// Path to the file to be read
+    #[clap(long, short)]
+    pub path: PathBuf,
+}
+
+impl Args {
+    pub fn parse_input(&self) -> anyhow::Result<Vec<Target>> {
+        Ok(vec![])
+    }
 }
 
 #[derive(ValueEnum, Debug, Clone)]

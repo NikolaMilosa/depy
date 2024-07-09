@@ -1,6 +1,5 @@
 use clap::Parser;
 use drawer::Drawer;
-use langs::ConfigParser;
 use model::Target;
 
 mod args;
@@ -11,7 +10,7 @@ mod model;
 fn main() -> anyhow::Result<()> {
     let args = args::Args::parse();
 
-    let mut targets = args.language.parse()?;
+    let mut targets = args.parse_input()?;
 
     let layer_zero: Vec<_> = targets
         .clone()
@@ -23,7 +22,7 @@ fn main() -> anyhow::Result<()> {
 
     targets.sort_by_key(|t| t.height);
 
-    let drawer = Drawer::new(args.format.into(), args.debug, Some(args.output));
+    let drawer = Drawer::new(args.format.into(), args.debug, args.output);
 
     drawer.draw(targets)
 }

@@ -13,11 +13,8 @@ use crate::model::{Target, TargetKind};
 
 use super::ConfigParser;
 
-#[derive(Debug, Clone, Args)]
-pub struct CSharpConfiguration {
-    /// Path to the solution file
-    pub path: PathBuf,
-}
+#[derive(Debug, Clone, Default)]
+pub struct CSharpConfiguration {}
 
 #[derive(Debug, Serialize)]
 struct ProjectReference {
@@ -25,12 +22,12 @@ struct ProjectReference {
 }
 
 impl ConfigParser for CSharpConfiguration {
-    fn parse(&self) -> anyhow::Result<Vec<Target>> {
-        let file = std::fs::read_to_string(&self.path)?;
+    fn parse(&self, path: PathBuf) -> anyhow::Result<Vec<Target>> {
+        let file = std::fs::read_to_string(&path)?;
         let solution = solp::parse_str(&file).map_err(|e| anyhow::anyhow!(e))?;
         let solution = solution.iterate_projects().collect::<Vec<_>>();
 
-        let parent_dir = std::fs::canonicalize(self.path.parent().unwrap())?;
+        let parent_dir = std::fs::canonicalize(path.parent().unwrap())?;
         let mut targets = vec![];
         for project in &solution {
             let mut target = from_project_into_target(&parent_dir, project)?;
@@ -51,6 +48,10 @@ impl ConfigParser for CSharpConfiguration {
         }
 
         Ok(targets)
+    }
+
+    fn file_end(&self) -> String {
+        ".sln".to_string()
     }
 }
 
