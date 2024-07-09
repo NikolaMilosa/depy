@@ -21,4 +21,6 @@ A great feature of the tool is picking the start of the graph (or the top-most e
 depy -p ../path/to/Cargo.toml -t name-of-top-level-target > ~/Downloads/output.svg
 ```
 
+One can use the `-t` flag multiple times to add more targets to the output. 
+
 To visualize the output one can use a browser.

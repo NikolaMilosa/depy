@@ -32,7 +32,7 @@ pub struct Args {
     /// If the workspace has a lot of dependencies then you can use this feature
     /// to only set this target as a top-level one
     #[clap(long, short, allow_hyphen_values = true)]
-    pub top_level: Option<String>,
+    pub top_level: Vec<String>,
 }
 
 impl Args {
@@ -40,19 +40,27 @@ impl Args {
         let lang: LanguagesConfiguration = self.path.clone().try_into()?;
 
         let mut targets = lang.parse(self.path.clone())?;
-        if let Some(top_level) = &self.top_level {
-            let target = targets
-                .iter()
-                .find(|t| t.name.eq(top_level))
-                .cloned()
-                .ok_or(anyhow::anyhow!(
-                    "Target with name '{}' not found",
-                    top_level
-                ))?;
-            let initial_bag = targets.into_iter().filter(|t| !t.eq(&target)).collect();
+        if !&self.top_level.is_empty() {
+            let mut top_levels = vec![];
+            for top_level in &self.top_level {
+                let target = targets
+                    .iter()
+                    .find(|t| t.name.eq(top_level))
+                    .cloned()
+                    .ok_or(anyhow::anyhow!(
+                        "Target with name '{}' not found",
+                        top_level
+                    ))?;
+                top_levels.push(target)
+            }
+
+            let initial_bag = targets
+                .into_iter()
+                .filter(|t| !top_levels.iter().any(|tl| tl.eq(t)))
+                .collect();
 
             let mut acc = vec![];
-            iterate(&mut acc, vec![target], initial_bag);
+            iterate(&mut acc, top_levels, initial_bag);
             targets = acc
         }
 
