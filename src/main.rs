@@ -15,7 +15,7 @@ fn main() -> anyhow::Result<()> {
     let layer_zero: Vec<_> = targets
         .clone()
         .into_iter()
-        .filter(|t| t.dependencies.is_empty())
+        .filter(|t| t.dependencies.is_none())
         .collect();
 
     update_height(&mut targets, 1, layer_zero);
@@ -33,11 +33,13 @@ fn update_height(targets: &mut Vec<Target>, height: usize, previous_layer: Vec<T
     }
     let mut current_layer = vec![];
     for target in &mut *targets {
-        for dep in &target.dependencies {
-            if previous_layer.iter().any(|t| t.name.eq(dep)) {
-                target.height = height;
-                current_layer.push(target.clone());
-                break;
+        if let Some(deps) = &target.dependencies {
+            for dep in deps {
+                if previous_layer.iter().any(|t| t.eq(dep)) {
+                    target.height = height;
+                    current_layer.push(target.clone());
+                    break;
+                }
             }
         }
     }

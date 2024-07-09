@@ -1,4 +1,5 @@
 use std::{
+    borrow::BorrowMut,
     io::BufReader,
     path::{Path, PathBuf},
 };
@@ -31,17 +32,19 @@ impl ConfigParser for CSharpConfiguration {
         for project in &solution {
             let mut target = from_project_into_target(&parent_dir, project)?;
 
-            target.dependencies.iter_mut().for_each(|d| {
-                let path_to_uri = d[parent_dir.to_str().unwrap().len() + 1..]
-                    .to_string()
-                    .replace('/', "\\");
+            if let Some(deps) = target.dependencies.borrow_mut() {
+                deps.iter_mut().for_each(|d| {
+                    let path_to_uri = d.name[parent_dir.to_str().unwrap().len() + 1..]
+                        .to_string()
+                        .replace('/', "\\");
 
-                if let Some(corresponding_proj) =
-                    solution.iter().find(|p| p.path_or_uri.eq(&path_to_uri))
-                {
-                    *d = corresponding_proj.name.to_string();
-                }
-            });
+                    if let Some(corresponding_proj) =
+                        solution.iter().find(|p| p.path_or_uri.eq(&path_to_uri))
+                    {
+                        d.name = corresponding_proj.name.to_string();
+                    }
+                });
+            }
 
             targets.push(target)
         }
@@ -114,7 +117,12 @@ fn from_project_into_target(solution_path: &Path, project: &Project) -> anyhow::
     }
 
     let mut target = Target::new(project.name.to_string(), target_kind, "".to_string());
-    target.add_dependencies(project_references.into_iter().map(|pr| pr.name).collect());
+    target.add_dependencies(
+        project_references
+            .into_iter()
+            .map(|pr| Target::new(pr.name, TargetKind::Library, "".to_string()))
+            .collect(),
+    );
 
     Ok(target)
 }

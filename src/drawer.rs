@@ -51,11 +51,13 @@ impl Drawer {
                 id: node_id!(esc t.name),
                 attributes: vec![attr!("color", c)],
             }));
-            for dep in t.dependencies {
-                g.add_stmt(
-                    edge!(node_id!(esc t.name) => node_id!(esc dep), vec![attr!("color", c)])
-                        .into(),
-                );
+            if let Some(deps) = t.dependencies {
+                for dep in deps {
+                    g.add_stmt(
+                        edge!(node_id!(esc t.name) => node_id!(esc dep.name), vec![attr!("color", c)])
+                            .into(),
+                    );
+                }
             }
         }
 
@@ -89,6 +91,6 @@ const ALL_COLORS: &[color_name] = &[
 fn pick_random_color() -> &'static color_name {
     let mut rng = rand::thread_rng();
     let index = rng.gen_range(0..ALL_COLORS.len());
-    
+
     (&ALL_COLORS[index]) as _
 }
