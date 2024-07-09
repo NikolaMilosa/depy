@@ -64,7 +64,7 @@ impl Display for Target {
 
         if let Some(dependencies) = &self.dependencies {
             for dependency in dependencies {
-                write!(f, " |- {}", dependency)?;
+                writeln!(f, " |- {}", dependency)?;
             }
         }
 
@@ -74,7 +74,7 @@ impl Display for Target {
 
 impl Display for Dep {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({}) {}", self.kind, self.name)
+        write!(f, "{} {}", self.kind, self.name)
     }
 }
 

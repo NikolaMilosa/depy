@@ -54,13 +54,13 @@ impl Args {
                 top_levels.push(target)
             }
 
-            let initial_bag = targets
+            let mut initial_bag: Vec<_> = targets
                 .into_iter()
                 .filter(|t| !top_levels.iter().any(|tl| tl.eq(t)))
                 .collect();
 
             let mut acc = vec![];
-            iterate(&mut acc, top_levels, initial_bag);
+            iterate(&mut acc, top_levels, &mut initial_bag);
             targets = acc
         }
 
@@ -68,19 +68,18 @@ impl Args {
     }
 }
 
-fn iterate(acc: &mut Vec<Target>, to_keep: Vec<Target>, bag: Vec<Target>) {
+fn iterate(acc: &mut Vec<Target>, to_keep: Vec<Target>, bag: &mut Vec<Target>) {
     if to_keep.is_empty() {
         return;
     }
 
     let mut new_to_keep = vec![];
-    let mut new_bag = bag.clone();
 
     for new_addition in &to_keep {
         if let Some(deps) = &new_addition.dependencies {
             for dep in deps {
-                if let Some(pos) = new_bag.iter().position(|t| t.eq(dep)) {
-                    let popped = new_bag.remove(pos);
+                if let Some(pos) = bag.iter().position(|t| t.eq(dep)) {
+                    let popped = bag.swap_remove(pos);
                     new_to_keep.push(popped)
                 }
             }
@@ -89,7 +88,7 @@ fn iterate(acc: &mut Vec<Target>, to_keep: Vec<Target>, bag: Vec<Target>) {
 
     acc.extend(to_keep);
 
-    iterate(acc, new_to_keep, new_bag)
+    iterate(acc, new_to_keep, bag)
 }
 
 #[derive(ValueEnum, Debug, Clone)]
