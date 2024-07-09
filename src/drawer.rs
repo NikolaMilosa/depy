@@ -51,13 +51,11 @@ impl Drawer {
                 id: node_id!(esc t.name),
                 attributes: vec![attr!("color", c)],
             }));
-            if let Some(deps) = t.dependencies {
-                for dep in deps {
-                    g.add_stmt(
-                        edge!(node_id!(esc t.name) => node_id!(esc dep.name), vec![attr!("color", c)])
-                            .into(),
-                    );
-                }
+            for dep in t.dependencies {
+                g.add_stmt(
+                    edge!(node_id!(esc t.name) => node_id!(esc dep), vec![attr!("color", c)])
+                        .into(),
+                );
             }
         }
 

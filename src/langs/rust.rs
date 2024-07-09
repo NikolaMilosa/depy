@@ -1,6 +1,6 @@
 use std::{borrow::BorrowMut, collections::BTreeMap, path::PathBuf};
 
-use cargo_toml::{Dependency, Manifest, Package};
+use cargo_toml::{Manifest, Package};
 use clap::Args;
 
 use crate::model::{Target, TargetKind};
@@ -65,6 +65,7 @@ impl RustConfiguration {
                 Target::new(key.to_string(), kind, version)
             })
             .filter(|t| t.kind != TargetKind::Crate)
+            .map(|d| d.name)
             .collect();
 
         target.add_dependencies(deps);
@@ -79,36 +80,14 @@ impl RustConfiguration {
             .ok_or(anyhow::anyhow!("Workspace not found"))?;
         let package = workspace.package.unwrap_or_default();
         let version = package.version.unwrap_or_default();
-        let workspace_deps: BTreeMap<String, Dependency> = workspace
-            .dependencies
-            .into_iter()
-            .chain(manifest.build_dependencies)
-            .chain(manifest.dev_dependencies)
-            .collect();
+
         for member in &workspace.members {
             let current_path = self.path.parent().unwrap().join(member).join("Cargo.toml");
             let member_targets: Vec<_> = Self::parse(&RustConfiguration { path: current_path })?
                 .iter_mut()
                 .map(|t| {
                     t.version = version.to_string();
-                    if let Some(deps) = t.dependencies.borrow_mut() {
-                        deps.iter_mut().for_each(|d| {
-                            if d.version.eq("") {
-                                if workspace_deps.contains_key(&d.name) {
-                                    let dep = workspace_deps.get(&d.name).unwrap();
-                                    d.version = match dep {
-                                        Dependency::Simple(s) => s.to_string(),
-                                        Dependency::Inherited(_) => version.to_string(),
-                                        Dependency::Detailed(s) => {
-                                            s.version.clone().unwrap_or(version.to_string())
-                                        }
-                                    };
-                                } else if d.kind == TargetKind::Library {
-                                    d.version = version.to_string();
-                                }
-                            }
-                        });
-                    }
+
                     t.clone()
                 })
                 .collect();

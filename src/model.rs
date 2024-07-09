@@ -7,7 +7,7 @@ pub struct Target {
     pub name: String,
     pub kind: TargetKind,
     pub version: String,
-    pub dependencies: Option<Vec<Target>>,
+    pub dependencies: Vec<String>,
     pub height: usize,
 }
 
@@ -22,15 +22,13 @@ impl Target {
             name,
             kind,
             version,
-            dependencies: None,
+            dependencies: vec![],
             height: 0,
         }
     }
 
-    pub fn add_dependencies(&mut self, dependencies: Vec<Target>) {
-        let mut old_deps = self.dependencies.take().unwrap_or_default();
-        old_deps.extend(dependencies);
-        self.dependencies = Some(old_deps);
+    pub fn add_dependencies(&mut self, dependencies: Vec<String>) {
+        self.dependencies.extend(dependencies);
     }
 }
 
@@ -43,16 +41,14 @@ impl Display for Target {
             self.kind,
             self.name,
             self.version,
-            match &self.dependencies {
-                Some(_) => ":",
-                None => "",
+            match &self.dependencies.is_empty() {
+                true => ":",
+                false => "",
             }
         )?;
 
-        if let Some(dependencies) = &self.dependencies {
-            for dependency in dependencies {
-                write!(f, " |- {}", dependency)?;
-            }
+        for dependency in &self.dependencies {
+            write!(f, " |- {}", dependency)?;
         }
 
         Ok(())
