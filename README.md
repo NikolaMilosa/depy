@@ -13,6 +13,6 @@ cargo build --release
 
 ## Usage
 ```bash
-depy --output ~/Downloads/out rust ../path/to/Cargo.toml
+depy -p ../path/to/Cargo.toml > ~/Downloads/output.svg
 ```
 To visualize the output one can use a browser.

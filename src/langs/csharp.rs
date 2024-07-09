@@ -4,7 +4,6 @@ use std::{
 };
 
 use anyhow::Ok;
-use clap::Args;
 use serde::Serialize;
 use solp::api::Project;
 use xml::{reader::XmlEvent, EventReader};

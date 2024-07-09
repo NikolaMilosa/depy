@@ -1,9 +1,12 @@
 use std::path::PathBuf;
 
-use clap::{error::ErrorKind, Command, Parser, ValueEnum};
+use clap::{Parser, ValueEnum};
 use graphviz_rust::cmd::Format;
 
-use crate::model::Target;
+use crate::{
+    langs::{ConfigParser, LanguagesConfiguration},
+    model::Target,
+};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -27,7 +30,9 @@ pub struct Args {
 
 impl Args {
     pub fn parse_input(&self) -> anyhow::Result<Vec<Target>> {
-        Ok(vec![])
+        let lang: LanguagesConfiguration = self.path.clone().try_into()?;
+
+        lang.parse(self.path.clone())
     }
 }
 

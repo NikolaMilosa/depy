@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
 use crate::model::Target;
-use clap::Subcommand;
 use csharp::CSharpConfiguration;
 use rust::RustConfiguration;
 
