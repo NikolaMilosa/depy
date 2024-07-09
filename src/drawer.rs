@@ -35,8 +35,10 @@ impl Drawer {
     }
 
     fn draw_debug(&self, targets: Vec<Target>) -> anyhow::Result<()> {
+        let stdout = std::io::stdout();
+        let mut lock = stdout.lock();
         for target in targets {
-            println!("{}", target);
+            writeln!(lock, "{}", target)?;
         }
 
         Ok(())
