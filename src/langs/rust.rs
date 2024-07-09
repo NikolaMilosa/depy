@@ -1,4 +1,4 @@
-use std::{borrow::BorrowMut, collections::BTreeMap, path::PathBuf};
+use std::{path::PathBuf};
 
 use cargo_toml::{Manifest, Package};
 use clap::Args;
