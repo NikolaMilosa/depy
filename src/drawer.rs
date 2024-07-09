@@ -9,6 +9,7 @@ use graphviz_rust::{
     printer::PrinterContext,
 };
 use rand::Rng;
+use spinners::{Spinner, Spinners};
 
 use crate::model::Target;
 
@@ -62,8 +63,13 @@ impl Drawer {
                 }
             }
         }
-
+        let mut spinner = Spinner::with_timer_and_stream(
+            Spinners::Material,
+            "Converting graph to a desired format".to_owned(),
+            spinners::Stream::Stderr,
+        );
         let graph_svg = exec(g, &mut PrinterContext::default(), vec![self.format.into()])?;
+        spinner.stop_and_persist("🗸", "Converted".to_owned());
         match &self.path {
             Some(p) => std::fs::write(p, &graph_svg).map_err(|e| anyhow::anyhow!(e)),
             None => {
