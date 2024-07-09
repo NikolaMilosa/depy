@@ -49,8 +49,11 @@ impl ConfigParser for CSharpConfiguration {
         Ok(targets)
     }
 
-    fn file_end(&self) -> String {
-        ".sln".to_string()
+    fn matches(&self, path: &PathBuf) -> bool {
+        match path.extension() {
+            Some(e) => e.to_string_lossy().eq("sln"),
+            None => false,
+        }
     }
 }
 

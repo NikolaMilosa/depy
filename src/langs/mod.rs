@@ -25,7 +25,7 @@ impl Default for LanguagesConfiguration {
 pub trait ConfigParser {
     fn parse(&self, path: PathBuf) -> anyhow::Result<Vec<Target>>;
 
-    fn file_end(&self) -> String;
+    fn matches(&self, path: &PathBuf) -> bool;
 }
 
 impl ConfigParser for LanguagesConfiguration {
@@ -36,10 +36,10 @@ impl ConfigParser for LanguagesConfiguration {
         }
     }
 
-    fn file_end(&self) -> String {
+    fn matches(&self, path: &PathBuf) -> bool {
         match &self {
-            LanguagesConfiguration::Rust(r) => r.file_end(),
-            LanguagesConfiguration::CSharp(c) => c.file_end(),
+            LanguagesConfiguration::Rust(r) => r.matches(path),
+            LanguagesConfiguration::CSharp(c) => c.matches(path),
         }
     }
 }
@@ -49,7 +49,7 @@ impl TryFrom<PathBuf> for LanguagesConfiguration {
 
     fn try_from(value: PathBuf) -> Result<Self, Self::Error> {
         LanguagesConfiguration::iter()
-            .find(|lang| value.ends_with(lang.file_end()))
+            .find(|lang| lang.matches(&value))
             .ok_or(anyhow::anyhow!(
                 "There is no implementation for that path yet"
             ))

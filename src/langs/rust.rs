@@ -24,8 +24,8 @@ impl ConfigParser for RustConfiguration {
         Ok(targets)
     }
 
-    fn file_end(&self) -> String {
-        "Cargo.toml".to_string()
+    fn matches(&self, path: &PathBuf) -> bool {
+        path.ends_with("Cargo.toml")
     }
 }
 
