@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use cargo_toml::{Manifest, Package};
 
@@ -24,7 +24,7 @@ impl ConfigParser for RustConfiguration {
         Ok(targets)
     }
 
-    fn matches(&self, path: &PathBuf) -> bool {
+    fn matches(&self, path: &Path) -> bool {
         path.ends_with("Cargo.toml")
     }
 }

@@ -89,6 +89,6 @@ const ALL_COLORS: &[color_name] = &[
 fn pick_random_color() -> &'static color_name {
     let mut rng = rand::thread_rng();
     let index = rng.gen_range(0..ALL_COLORS.len());
-    let c = &ALL_COLORS[index];
-    c
+    
+    (&ALL_COLORS[index]) as _
 }

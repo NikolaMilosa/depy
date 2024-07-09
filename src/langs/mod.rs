@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::model::Target;
 use csharp::CSharpConfiguration;
@@ -25,7 +25,7 @@ impl Default for LanguagesConfiguration {
 pub trait ConfigParser {
     fn parse(&self, path: PathBuf) -> anyhow::Result<Vec<Target>>;
 
-    fn matches(&self, path: &PathBuf) -> bool;
+    fn matches(&self, path: &Path) -> bool;
 }
 
 impl ConfigParser for LanguagesConfiguration {
@@ -36,7 +36,7 @@ impl ConfigParser for LanguagesConfiguration {
         }
     }
 
-    fn matches(&self, path: &PathBuf) -> bool {
+    fn matches(&self, path: &Path) -> bool {
         match &self {
             LanguagesConfiguration::Rust(r) => r.matches(path),
             LanguagesConfiguration::CSharp(c) => c.matches(path),

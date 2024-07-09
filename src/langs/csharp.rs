@@ -34,7 +34,7 @@ impl ConfigParser for CSharpConfiguration {
             target.dependencies.iter_mut().for_each(|d| {
                 let path_to_uri = d[parent_dir.to_str().unwrap().len() + 1..]
                     .to_string()
-                    .replace("/", "\\");
+                    .replace('/', "\\");
 
                 if let Some(corresponding_proj) =
                     solution.iter().find(|p| p.path_or_uri.eq(&path_to_uri))
@@ -49,7 +49,7 @@ impl ConfigParser for CSharpConfiguration {
         Ok(targets)
     }
 
-    fn matches(&self, path: &PathBuf) -> bool {
+    fn matches(&self, path: &Path) -> bool {
         match path.extension() {
             Some(e) => e.to_string_lossy().eq("sln"),
             None => false,
@@ -58,7 +58,7 @@ impl ConfigParser for CSharpConfiguration {
 }
 
 fn from_project_into_target(solution_path: &Path, project: &Project) -> anyhow::Result<Target> {
-    let project_file_path = solution_path.join(project.path_or_uri.replace("\\", "/"));
+    let project_file_path = solution_path.join(project.path_or_uri.replace('\\', "/"));
     let dir_binding = project_file_path.clone();
     let canonical_dir = dir_binding.parent().unwrap();
     let file = std::fs::File::open(project_file_path)?;
@@ -74,7 +74,7 @@ fn from_project_into_target(solution_path: &Path, project: &Project) -> anyhow::
             XmlEvent::StartElement {
                 name, attributes, ..
             } => {
-                current_element = name.local_name.clone();
+                current_element.clone_from(&name.local_name);
                 match current_element.as_str() {
                     "Project" => {
                         let sdk = attributes
@@ -91,7 +91,7 @@ fn from_project_into_target(solution_path: &Path, project: &Project) -> anyhow::
                             .iter()
                             .find(|attr| attr.name.local_name == "Include")
                             .unwrap();
-                        let non_canonical = canonical_dir.join(include.value.replace("\\", "/"));
+                        let non_canonical = canonical_dir.join(include.value.replace('\\', "/"));
                         let canonical = std::fs::canonicalize(non_canonical)?;
                         project_references.push(ProjectReference {
                             name: canonical.to_str().unwrap().to_string(),
