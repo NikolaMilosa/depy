@@ -9,7 +9,7 @@ use serde::Serialize;
 use solp::api::Project;
 use xml::{reader::XmlEvent, EventReader};
 
-use crate::model::{Target, TargetKind};
+use crate::model::{Dep, Target, TargetKind};
 
 use super::ConfigParser;
 
@@ -120,7 +120,10 @@ fn from_project_into_target(solution_path: &Path, project: &Project) -> anyhow::
     target.add_dependencies(
         project_references
             .into_iter()
-            .map(|pr| Target::new(pr.name, TargetKind::Library, "".to_string()))
+            .map(|pr| Dep {
+                name: pr.name,
+                kind: TargetKind::Library,
+            })
             .collect(),
     );
 

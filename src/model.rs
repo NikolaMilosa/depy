@@ -7,8 +7,14 @@ pub struct Target {
     pub name: String,
     pub kind: TargetKind,
     pub version: String,
-    pub dependencies: Option<Vec<Target>>,
+    pub dependencies: Option<Vec<Dep>>,
     pub height: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct Dep {
+    pub name: String,
+    pub kind: TargetKind,
 }
 
 impl PartialEq for Target {
@@ -16,6 +22,13 @@ impl PartialEq for Target {
         self.name == other.name && self.kind == other.kind && self.version == other.version
     }
 }
+
+impl PartialEq<Dep> for Target {
+    fn eq(&self, other: &Dep) -> bool {
+        self.name == other.name && self.kind == other.kind
+    }
+}
+
 impl Target {
     pub fn new(name: String, kind: TargetKind, version: String) -> Self {
         Self {
@@ -27,7 +40,7 @@ impl Target {
         }
     }
 
-    pub fn add_dependencies(&mut self, dependencies: Vec<Target>) {
+    pub fn add_dependencies(&mut self, dependencies: Vec<Dep>) {
         let mut old = self.dependencies.take().unwrap_or_default();
         old.extend(dependencies);
         self.dependencies = Some(old);
@@ -56,6 +69,12 @@ impl Display for Target {
         }
 
         Ok(())
+    }
+}
+
+impl Display for Dep {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}) {}", self.kind, self.name)
     }
 }
 
